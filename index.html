@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Новый Порядок — Секретная концовка (GLITCH_OS v5.2)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        /* Изолированный модуль переключения экранов (гарантированно работает на iOS Safari/WebView и ПК) */
+        window.__creditsTimerId = null;
+        window.__startGuard = false;
+
+        function switchScreen(targetId) {
+            var ids = ['screen-start', 'screen-credits', 'screen-glitch', 'screen-dossier', 'screen-finale', 'screen-season2'];
+            for (var i = 0; i < ids.length; i++) {
+                var el = document.getElementById(ids[i]);
+                if (!el) continue;
+                if (ids[i] === targetId) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            }
+            try { window.scrollTo(0, 0); } catch (e) {}
+        }
+
+        function startApp(ev) {
+            if (ev && ev.type === 'touchend') {
+                try { ev.preventDefault(); } catch (e) {}
+            }
+            if (window.__startGuard) return;
+            window.__startGuard = true;
+            setTimeout(function() { window.__startGuard = false; }, 350);
+
+            switchScreen('screen-credits');
+
+            var rollBox = document.getElementById('credits-roll-box');
+            if (rollBox) {
+                rollBox.classList.remove('animate-credits');
+                void rollBox.offsetWidth;
+                rollBox.classList.add('animate-credits');
+            }
+
+            if (window.__creditsTimerId) {
+                clearTimeout(window.__creditsTimerId);
+            }
+            window.__creditsTimerId = setTimeout(function() {
+                if (typeof window.triggerGlitchIntercept === 'function') {
+                    window.triggerGlitchIntercept();
+                }
+            }, 21000);
+
+            setTimeout(function() {
+                try {
+                    if (window.audioEngine) {
+                        window.audioEngine.beep(780, 0.1, 'sine', 0.08);
+                        window.audioEngine.startCreditsAmbient();
+                    }
+                } catch (e) {}
+            }, 0);
+        }
+    </script>
+    <style>
+        /* Базовые настройки и защита от горизонтального скролла */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100dvh;
+            background-color: #05070d;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .font-mono-tech {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Декоративные оверлеи строго без перехвата касаний */
+        .crt-scanlines {
+            pointer-events: none;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.34) 50%
+            );
+            background-size: 100% 4px;
+        }
+        .vignette-layer {
+            pointer-events: none;
+            background: radial-gradient(circle at center, transparent 50%, rgba(0, 0, 0, 0.88) 100%);
+        }
+
+        /* Гарантированное скрытие неактивных экранов и приоритет интерактивных кнопок */
+        section.hidden {
+            display: none !important;
+            pointer-events: none !important;
+        }
+        section:not(.hidden) {
+            z-index: 100;
+        }
+        button {
+            touch-action: manipulation;
+        }
+
+        /* Плавный неспешный проезд титров: к 21-й секунде основной блок оказывается ровно по центру экрана */
+        @keyframes creditsRoll {
+            0% {
+                transform: translateY(82%);
+                opacity: 0;
+            }
+            7% {
+                opacity: 1;
+            }
+            48% {
+                transform: translateY(0%);
+                opacity: 1;
+            }
+            94% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-92%);
+                opacity: 0.95;
+            }
+        }
+        .animate-credits {
+            animation: creditsRoll 44s linear forwards;
+        }
+
+        /* Анимация глитч-тряски при перехвате */
+        @keyframes glitchShake {
+            0%, 100% { transform: translate(0, 0) skewX(0deg); }
+            15% { transform: translate(-7px, 3px) skewX(-5deg); }
+            30% { transform: translate(7px, -4px) skewX(6deg); }
+            45% { transform: translate(-5px, -2px) skewX(-3deg); }
+            60% { transform: translate(6px, 4px) skewX(4deg); }
+            75% { transform: translate(-4px, 2px) skewX(-4deg); }
+        }
+        .animate-glitch {
+            animation: glitchShake 0.2s infinite;
+        }
+
+        /* Агрессивный красный стробоскоп при взломе */
+        @keyframes strobeHack {
+            0%, 100% { background-color: rgba(15, 2, 6, 0.96); }
+            25% { background-color: rgba(127, 17, 17, 0.92); }
+            50% { background-color: rgba(3, 5, 10, 0.98); }
+            75% { background-color: rgba(153, 27, 27, 0.88); }
+        }
+        .animate-strobe-hack {
+            animation: strobeHack 0.16s infinite;
+        }
+
+        /* RGB-сдвиг хакерского заголовка */
+        .rgb-glitch-text {
+            text-shadow: -3px 0 #22d3ee, 3px 0 #ef4444, 0 0 18px rgba(239, 68, 68, 0.9);
+        }
+        .rgb-subtle-text {
+            text-shadow: -1.5px 0 rgba(34, 211, 238, 0.8), 1.5px 0 rgba(255, 42, 75, 0.85);
+        }
+
+        /* Неоновые тени для стартового экрана */
+        .neon-pink-glow {
+            text-shadow: 0 0 14px rgba(236, 72, 153, 0.75), 0 0 32px rgba(168, 85, 247, 0.45);
+        }
+        .neon-cyan-glow {
+            text-shadow: 0 0 12px rgba(34, 211, 238, 0.7);
+        }
+
+        /* Единый стиль хакерских терминальных панелей после взлома */
+        .hack-panel {
+            position: relative;
+            background: rgba(10, 4, 6, 0.92);
+            border: 1.5px solid rgba(255, 42, 75, 0.78);
+            box-shadow: 0 0 35px rgba(239, 68, 68, 0.28), inset 0 0 24px rgba(239, 68, 68, 0.12);
+            backdrop-filter: blur(10px);
+        }
+        .hack-panel::before,
+        .hack-panel::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .hack-panel::before {
+            top: -2px;
+            left: -2px;
+            border-top: 3px solid #22d3ee;
+            border-left: 3px solid #22d3ee;
+        }
+        .hack-panel::after {
+            bottom: -2px;
+            right: -2px;
+            border-bottom: 3px solid #22d3ee;
+            border-right: 3px solid #22d3ee;
+        }
+
+        /* Анимация выключения старого ЭЛТ-телевизора (схлопывание в полосу и точку) */
+        @keyframes crtOffCollapse {
+            0% {
+                transform: scale(1, 1);
+                filter: brightness(1);
+                background-color: transparent;
+            }
+            35% {
+                transform: scale(1.04, 0.008);
+                filter: brightness(4);
+                background-color: #ffffff;
+            }
+            70% {
+                transform: scale(0.015, 0.006);
+                filter: brightness(6);
+                background-color: #e0f2fe;
+            }
+            100% {
+                transform: scale(0, 0);
+                filter: brightness(0);
+                background-color: #000000;
+            }
+        }
+        .animate-crt-collapse {
+            animation: crtOffCollapse 0.65s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        /* Резкое мерцание экрана при раскрытии 2 сезона на слове «мать» */
+        @keyframes seasonTwoFlicker {
+            0% { background-color: #ffffff; opacity: 1; }
+            12% { background-color: #7f1d1d; opacity: 0.95; }
+            24% { background-color: #000000; opacity: 1; }
+            36% { background-color: #0891b2; opacity: 0.85; }
+            48% { background-color: #ef4444; opacity: 0.9; }
+            64% { background-color: #000000; opacity: 1; }
+            80% { background-color: #450a0a; opacity: 0.65; }
+            100% { background-color: #000000; opacity: 1; }
+        }
+        .animate-s2-flicker {
+            animation: seasonTwoFlicker 0.55s steps(2, end) forwards;
+        }
+    </style>
+</head>
+<body class="relative select-none bg-[#05070d] text-slate-100">
+
+    <!-- Процедурный Canvas-фон (закат Лос-Сантоса / непрерывный матричный дождь взлома) -->
+    <canvas id="bgCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- Декоративные слои экрана (строго pointer-events-none) -->
+    <div class="crt-scanlines fixed inset-0 z-10"></div>
+    <div class="vignette-layer fixed inset-0 z-10"></div>
+
+    <!-- =========================================================
+         ЭКРАН 1: СТАРТОВЫЙ ЭКРАН (GLITCH_OS // v5.2)
+         ========================================================= -->
+    <section id="screen-start" class="relative z-30 min-h-[100dvh] w-full flex flex-col items-center justify-between px-4 py-8 text-center">
+        <!-- Верхняя системная панель -->
+        <div class="w-full max-w-md flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-950/75 border border-cyan-500/30 backdrop-blur-md font-mono-tech text-[11px] text-cyan-300">
+            <span class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                GLITCH_OS // v5.2
+            </span>
+            <span class="text-slate-400">LOS SANTOS // 2026</span>
+        </div>
+
+        <!-- Центральный логотип и кнопка старта -->
+        <div class="w-full max-w-md my-auto flex flex-col items-center gap-5 p-6 rounded-2xl bg-slate-950/70 border border-white/10 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.85)]">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/15 border border-pink-500/40 font-mono-tech text-[11px] font-bold tracking-widest text-pink-300 uppercase">
+                СЕКРЕТНАЯ КОНЦОВКА
+            </div>
+
+            <div class="space-y-1.5">
+                <p class="font-mono-tech text-xs sm:text-sm font-bold tracking-[0.28em] text-cyan-300 neon-cyan-glow uppercase">
+                    NEW ORDER
+                </p>
+                <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white uppercase leading-none">
+                    НОВЫЙ<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-pink-400 to-amber-300 neon-pink-glow">
+                        ПОРЯДОК
+                    </span>
+                </h1>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xs">
+                Финал истории Джека «Ржавого» Вэнса и Кая «Глитча» Мерсера. Включите звук для полного погружения.
+            </p>
+
+            <button id="btn-start" type="button" onclick="startApp(event)" ontouchend="startApp(event)" style="position: relative; z-index: 9999; pointer-events: auto; touch-action: manipulation; cursor: pointer;" class="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-fuchsia-600 via-pink-600 to-amber-500 hover:from-fuchsia-500 hover:to-amber-400 active:scale-[0.98] text-white font-extrabold text-sm sm:text-base tracking-wider uppercase shadow-[0_0_30px_rgba(236,72,153,0.55)] transition cursor-pointer">
+                ▶ ЗАПУСТИТЬ ФИНАЛ
+            </button>
+        </div>
+
+        <!-- Нижняя подпись -->
+        <div class="font-mono-tech text-[11px] text-slate-400/80">
+            TERMINAL READY • AUDIO SYNTH ENABLED
+        </div>
+    </section>
+
+    <!-- =========================================================
+         ЭКРАН 2: АНИМИРОВАННЫЕ ФИНАЛЬНЫЕ ТИТРЫ
+         ========================================================= -->
+    <section id="screen-credits" class="hidden relative z-30 min-h-[100dvh] w-full flex flex-col items-center justify-between px-4 py-6 overflow-hidden">
+        <div class="w-full max-w-md flex items-center justify-between z-40">
+            <span class="font-mono-tech text-[11px] text-pink-400 tracking-widest uppercase">
+                ● ФИНАЛЬНЫЕ ТИТРЫ
+            </span>
+            <button id="btn-skip-credits" type="button" class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 border border-white/20 font-mono-tech text-xs font-bold text-white cursor-pointer transition">
+                ПРОПУСТИТЬ ⏭
+            </button>
+        </div>
+
+        <!-- Контейнер бегущих титров -->
+        <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden my-4">
+            <div id="credits-roll-box" class="animate-credits text-center space-y-6 py-8">
+                <div>
+                    <p class="font-mono-tech text-xs text-cyan-400 tracking-[0.25em] uppercase">МАШИНИМА-СЕРИАЛ</p>
+                    <h2 class="text-3xl font-black text-white mt-1">НОВЫЙ ПОРЯДОК</h2>
+                    <p class="font-mono-tech text-xs text-pink-400 mt-0.5">NEW ORDER // 2026</p>
+                </div>
+
+                <div class="space-y-2.5 text-sm">
+                    <p class="font-mono-tech text-[11px] text-slate-400 uppercase tracking-widest">В ГЛАВНЫХ РОЛЯХ</p>
+                    <p class="font-bold text-white">Джек «Ржавый» Вэнс</p>
+                    <p class="font-bold text-white">Кай «Глитч» Мерсер</p>
+                    <p class="font-bold text-white">Виктор Вейл — глава ЧВК «Эгида»</p>
+                    <p class="font-bold text-white">Информатор «Скат»</p>
+                </div>
+
+                <div class="space-y-2 text-sm">
+                    <p class="font-mono-tech text-[11px] text-slate-400 uppercase tracking-widest">ЛОКАЦИИ ЛОС-САНТОСА</p>
+                    <p class="text-slate-200">Хранилище Pacific Standard</p>
+                    <p class="text-slate-200">Штаб-квартира Maze Bank</p>
+                    <p class="text-slate-200">Доки Элизиан-Айленд</p>
+                    <p class="text-slate-200">Вершина Горы Чилиад</p>
+                </div>
+
+                <div class="pt-2">
+                    <p class="font-mono-tech text-xs text-amber-300">Операция завершена. Небоскрёб «Эгиды» пал...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-md text-center font-mono-tech text-[11px] text-slate-500">
+            SYNTHWAVE OUTRO // GLITCH_OS STREAM
+        </div>
+    </section>
+
+    <!-- =========================================================
+         ЭКРАН 3: ВНЕЗАПНЫЙ ПЕРЕХВАТ (GLITCH OVERRIDE)
+         ========================================================= -->
+    <section id="screen-glitch" class="hidden fixed inset-0 z-50 min-h-[100dvh] w-full flex flex-col items-center justify-center px-3.5 py-6 text-center animate-strobe-hack overflow-hidden">
+        <!-- Матричный Canvas-каскад на заднем плане взлома -->
+        <canvas id="hackMatrixCanvas" class="fixed inset-0 w-full h-full pointer-events-none opacity-75"></canvas>
+
+        <!-- Центральный хакерский терминал перехвата -->
+        <div class="relative z-10 animate-glitch w-full max-w-lg p-5 sm:p-6 rounded-2xl bg-black/95 border-2 border-red-500 shadow-[0_0_65px_rgba(239,68,68,0.85)] space-y-3.5 text-left">
+            <div class="flex items-center justify-between gap-2 border-b border-red-500/40 pb-2.5">
+                <span class="px-2.5 py-1 rounded bg-red-600 text-white font-mono-tech text-[11px] font-extrabold tracking-widest uppercase">
+                    ⚠ ROOT BREACH // 0xDEAD52
+                </span>
+                <span class="font-mono-tech text-[11px] text-cyan-300 animate-pulse">
+                    [SOCKET HIJACKED]
+                </span>
+            </div>
+
+            <div class="text-center py-1">
+                <h2 class="text-2xl sm:text-3xl font-black text-white rgb-glitch-text uppercase tracking-wider leading-tight">
+                    СИСТЕМА ВЗЛОМАНА:<br>
+                    <span class="text-red-500">ПЕРЕХВАТ КАНАЛА</span>
+                </h2>
+            </div>
+
+            <!-- Живой поток hex / exploit-логов в реальном времени -->
+            <div id="hack-terminal-stream" class="h-36 sm:h-40 overflow-hidden p-3 rounded-xl bg-[#030508] border border-emerald-500/40 font-mono-tech text-[11px] leading-snug text-emerald-400 space-y-1 shadow-inner">
+            </div>
+
+            <div class="p-3 rounded-xl bg-red-950/65 border border-red-500/50 font-mono-tech text-xs text-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <span>УЗЕЛ: <strong class="text-white">СКАТ_SHADOW</strong></span>
+                <span>ЦЕЛЬ: <strong class="text-cyan-300">КАЙ «ГЛИТЧ»</strong></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         ЭКРАН 4: СЕКРЕТНОЕ ДОСЬЕ (В СТИЛЕ ХАКЕРСКОГО ПЕРЕХВАТА)
+         ========================================================= -->
+    <section id="screen-dossier" class="hidden relative z-30 min-h-[100dvh] w-full flex flex-col items-center justify-between px-3.5 py-4 sm:py-6">
+        <!-- Верхняя хакерская полоса статуса взлома -->
+        <header class="w-full max-w-lg flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-[#0c0305]/95 border border-red-500/70 shadow-[0_0_25px_rgba(239,68,68,0.35)] backdrop-blur-md">
+            <div class="flex items-center gap-2">
+                <span class="px-1.5 py-0.5 rounded bg-red-600 text-white font-mono-tech text-[10px] font-extrabold animate-pulse">
+                    BREACH_ACTIVE
+                </span>
+                <span class="font-mono-tech text-[11px] sm:text-xs font-bold text-red-300 tracking-wider">
+                    АРХИВ // ОБЪЕКТ: ДЖЕК
+                </span>
+            </div>
+            <span id="slide-counter" class="font-mono-tech text-xs font-extrabold text-cyan-300 bg-black/80 px-2.5 py-0.5 rounded border border-red-500/50">
+                1 / 4
+            </span>
+        </header>
+
+        <!-- Основная хакерская карточка слайда -->
+        <main class="hack-panel w-full max-w-lg my-3 p-4 sm:p-5 rounded-2xl flex flex-col gap-3.5">
+            <!-- Бейдж улики и телеметрия перехвата -->
+            <div class="flex items-center justify-between gap-2 border-b border-red-500/30 pb-2">
+                <span id="slide-badge" class="px-2.5 py-1 rounded bg-red-600/25 border border-red-500/60 font-mono-tech text-[11px] font-bold text-red-200 uppercase">
+                    УЛИКА #01 // PACIFIC STANDARD
+                </span>
+                <span class="font-mono-tech text-[10px] text-emerald-400">
+                    [0xDEAD52 // DECRYPTED]
+                </span>
+            </div>
+
+            <!-- Сюжетная 2D-иллюстрация на Canvas в хакерской рамке -->
+            <div id="art-container" class="relative w-full aspect-[16/9] rounded-xl overflow-hidden border-2 border-red-500/65 bg-[#050307] shadow-[0_0_25px_rgba(239,68,68,0.25)]">
+                <canvas id="artCanvas" width="640" height="360" class="w-full h-full block"></canvas>
+
+                <!-- Интерактивная точка скрытой улики (Слайды 1-3) -->
+                <button id="btn-hotspot" type="button" aria-label="Скрытая улика" class="hidden absolute -translate-x-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full flex items-center justify-center cursor-pointer group">
+                    <span class="absolute inset-1 rounded-full bg-cyan-400/35 animate-ping"></span>
+                    <span class="relative w-4 h-4 rounded-full bg-cyan-300 border-2 border-red-500 shadow-[0_0_14px_#22d3ee]"></span>
+                </button>
+
+                <!-- Всплывающая сноска от СКАТ_SHADOW при клике на улику -->
+                <div id="hotspot-popup" class="hidden absolute inset-x-2.5 bottom-2.5 z-30 p-3 rounded-xl bg-[#070306]/95 border border-cyan-400/80 shadow-[0_0_25px_rgba(34,211,238,0.45)] backdrop-blur-md space-y-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="hotspot-tag" class="font-mono-tech text-[10px] font-extrabold text-cyan-300 tracking-wider uppercase">
+                            [СКАТ_SHADOW // СКРЫТЫЙ СЛОЙ]
+                        </span>
+                        <button id="btn-close-hotspot" type="button" class="px-2 py-0.5 rounded bg-red-600/30 border border-red-500/60 font-mono-tech text-[10px] font-bold text-red-200 cursor-pointer">
+                            ✕
+                        </button>
+                    </div>
+                    <p id="hotspot-note" class="font-mono-tech text-[11px] sm:text-xs text-emerald-300 leading-snug"></p>
+                </div>
+
+                <!-- Красный штамп «ПРЕДАТЕЛЬ» для 4-го слайда -->
+                <div id="traitor-stamp" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="px-5 py-2 border-4 border-red-500 rounded-lg bg-black/75 text-red-500 font-black text-2xl sm:text-3xl tracking-[0.2em] uppercase -rotate-12 shadow-[0_0_30px_rgba(239,68,68,0.9)] rgb-glitch-text">
+                        ПРЕДАТЕЛЬ
+                    </div>
+                </div>
+            </div>
+
+            <!-- Заголовок и текст улики -->
+            <div class="space-y-1.5">
+                <h2 id="slide-title" class="text-lg sm:text-xl font-black text-white rgb-subtle-text leading-snug tracking-wide">
+                    УЛИКА #01 // PACIFIC STANDARD
+                </h2>
+                <p id="slide-text" class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                    Ограбление банка было спектаклем — Джек забрал диск с компроматом не для Кая, а чтобы зачистить следы.
+                </p>
+            </div>
+
+            <!-- Мини-взлом фаервола Джека перед разблокировкой Аудио-лога #0451 (Слайд 4) -->
+            <div id="firewall-box" class="hidden p-3.5 rounded-xl bg-black/90 border border-red-500/80 shadow-[inset_0_0_24px_rgba(239,68,68,0.28)] flex flex-col gap-2.5">
+                <div class="flex items-center justify-between gap-2 font-mono-tech text-[11px]">
+                    <span class="font-extrabold text-red-400 tracking-wide uppercase">
+                        ЗАЩИТА ДЖЕКА // ВЗЛОМ ШИФРОВАНИЯ #0451
+                    </span>
+                    <span id="fw-timer" class="px-2 py-0.5 rounded bg-red-950 border border-red-500/60 font-extrabold text-amber-300">
+                        08.0с
+                    </span>
+                </div>
+                <p id="fw-status" class="font-mono-tech text-[11px] text-slate-300">
+                    Нейтрализуйте 3 красных узла защиты до сброса ключа (<span id="fw-progress" class="text-cyan-300 font-bold">0 / 3</span>):
+                </p>
+                <div id="fw-grid" class="grid grid-cols-3 gap-2">
+                </div>
+            </div>
+
+            <!-- Интерактивный плеер АУДИО-ЛОГ #0451 (только на 4-м слайде после взлома фаервола) -->
+            <div id="audiolog-box" class="hidden p-3.5 rounded-xl bg-black/85 border border-red-500/70 shadow-[inset_0_0_20px_rgba(239,68,68,0.2)] flex flex-col gap-2.5">
+                <!-- Баннер тревоги при обнаружении трассировки местоположения Кая -->
+                <div id="trace-alert-banner" class="hidden p-2 rounded-lg bg-red-600/95 border border-amber-300 text-center font-mono-tech text-[11px] font-black text-white tracking-wider uppercase animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.9)]">
+                    ⚠ ВНИМАНИЕ: ОБНАРУЖЕНА ТРАССИРОВКА МЕСТОПОЛОЖЕНИЯ КАЯ
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <button id="btn-play-log" type="button" class="px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-500 active:scale-95 text-white font-mono-tech text-xs font-extrabold flex items-center gap-2 cursor-pointer transition shadow-[0_0_18px_rgba(239,68,68,0.6)]">
+                        <span>▶</span>
+                        <span id="log-btn-label">ПРОСЛУШАТЬ ПЕРЕХВАТ (#0451)</span>
+                    </button>
+                    <div class="flex items-center gap-2 font-mono-tech text-[11px]">
+                        <span id="log-timer" class="text-cyan-300 bg-black/90 px-2 py-0.5 rounded border border-red-500/40">00:00 / 00:19</span>
+                        <span class="text-red-500 font-bold animate-pulse">● REC</span>
+                    </div>
+                </div>
+
+                <!-- Живая осциллограмма -->
+                <canvas id="waveCanvas" width="520" height="44" class="w-full h-10 rounded-lg bg-[#030508] border border-red-500/40"></canvas>
+
+                <!-- Окно расшифровки диалога -->
+                <div id="log-subtitles" class="p-3 rounded-xl bg-[#04060a] border border-emerald-500/40 font-mono-tech text-xs sm:text-sm min-h-[104px] flex flex-col justify-center gap-1.5 leading-relaxed">
+                    <span class="text-emerald-400/90">[Нажмите «Прослушать перехват (#0451)», чтобы услышать тайный разговор...]</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Нижняя панель навигации по слайдам в хакерском стиле -->
+        <footer class="w-full max-w-lg flex items-center justify-between gap-3">
+            <button id="btn-prev" type="button" class="px-4 py-3.5 rounded-xl bg-[#0c0406]/95 hover:bg-red-950/50 disabled:opacity-35 border border-red-500/50 font-mono-tech text-xs font-bold text-red-200 cursor-pointer transition">
+                ◀ НАЗАД
+            </button>
+            <button id="btn-next" type="button" class="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-cyan-600 hover:from-red-500 hover:to-cyan-500 active:scale-[0.99] border border-red-400/50 font-mono-tech text-xs sm:text-sm font-extrabold text-white tracking-wide cursor-pointer transition shadow-[0_0_24px_rgba(239,68,68,0.45)]">
+                ДАЛЕЕ ▶
+            </button>
+        </footer>
+    </section>
+
+    <!-- =========================================================
+         ЭКРАН 5: ФИНАЛЬНОЕ СЕКРЕТНОЕ ПОСЛАНИЕ ОТ «СКАТА»
+         ========================================================= -->
+    <section id="screen-finale" class="hidden relative z-30 min-h-[100dvh] w-full flex flex-col items-center justify-between px-3.5 py-5 sm:py-7">
+        <!-- Шапка входящего сообщения в стиле перехвата -->
+        <div class="w-full max-w-lg px-4 py-3 rounded-xl bg-[#0c0305]/95 border border-red-500/75 shadow-[0_0_25px_rgba(239,68,68,0.35)] backdrop-blur-md flex items-center justify-between gap-2">
+            <span class="font-mono-tech text-[11px] sm:text-xs font-extrabold text-emerald-400 tracking-wider">
+                ЗАШИФРОВАННОЕ СООБЩЕНИЕ // ОТПРАВИТЕЛЬ: СКАТ_SHADOW
+            </span>
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0"></span>
+        </div>
+
+        <!-- Основной хакерский блок послания и радара -->
+        <div class="hack-panel w-full max-w-lg my-3 p-5 rounded-2xl flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-red-500/35 pb-2">
+                <span class="inline-block px-2.5 py-0.5 rounded bg-red-600/25 border border-red-500/60 font-mono-tech text-[11px] font-bold text-red-200">
+                    ЛИЧНО ДЛЯ КАЯ «ГЛИТЧА»
+                </span>
+                <span class="font-mono-tech text-[10px] text-cyan-300">
+                    [P2P_ENCRYPTED]
+                </span>
+            </div>
+
+            <p class="text-sm sm:text-base text-slate-100 leading-relaxed font-medium">
+                «Кай, если ты это читаешь — Джек уже знает, что я слил тебе архив. Он идёт за тобой, чтобы убрать последнего свидетеля. Не верь ни одному его слову. Я жду тебя сегодня ночью, у меня есть план, как прижать его. Приходи один.»
+            </p>
+
+            <!-- Блок места встречи + мини-радар -->
+            <div class="p-3.5 rounded-xl bg-[#04060b]/95 border border-red-500/50 flex flex-col sm:flex-row items-center gap-3.5 shadow-inner">
+                <canvas id="radarCanvas" width="140" height="140" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-red-500/60 bg-[#030509] shrink-0 shadow-[0_0_18px_rgba(239,68,68,0.3)]"></canvas>
+                <div class="space-y-1.5 text-center sm:text-left font-mono-tech">
+                    <p class="text-[11px] text-red-400 font-extrabold uppercase tracking-wider">ТОЧКА ВСТРЕЧИ</p>
+                    <p class="text-xs sm:text-sm font-extrabold text-white">
+                        Доки Элизиан-Айленд, заброшенный Пирс 400
+                    </p>
+                    <p class="text-[11px] text-emerald-300">
+                        GPS: 34.0522° N, 118.2437° W
+                    </p>
+                    <p class="text-[11px] text-slate-400">
+                        ВРЕМЯ: 02:30 // КАНАЛ: ЧАСТОТА 104.8
+                    </p>
+                </div>
+            </div>
+
+            <!-- Статус подтверждения сигнала + обратный отсчёт группы зачистки ЧВК «Эгида» -->
+            <div id="signal-confirm-box" class="hidden p-3.5 rounded-xl bg-black/90 border border-red-500/80 text-center space-y-2 shadow-[0_0_28px_rgba(239,68,68,0.35)]">
+                <p id="strike-header" class="font-mono-tech text-[11px] sm:text-xs font-extrabold text-red-400 tracking-wider uppercase animate-pulse">
+                    ⚠ ПЕРЕХВАТ РАДИОЧАСТОТЫ ЧВК «ЭГИДА»
+                </p>
+                <div class="p-2.5 rounded-lg bg-[#090204] border border-red-500/60">
+                    <p class="font-mono-tech text-[10px] sm:text-[11px] text-slate-300 uppercase">
+                        ДО ПРИБЫТИЯ ГРУППЫ ЗАЧИСТКИ ЧВК «ЭГИДА»:
+                    </p>
+                    <p id="strike-countdown" class="font-mono-tech text-2xl sm:text-3xl font-black text-red-500 rgb-glitch-text tracking-widest mt-0.5">
+                        00:45.00
+                    </p>
+                </div>
+                <p id="strike-status-text" class="font-mono-tech text-xs font-extrabold text-emerald-300 tracking-wide rgb-subtle-text">
+                    УСПЕТЬ УЙТИ // ПЕРЕХОД В СЕЗОН 2
+                </p>
+            </div>
+
+            <!-- Кнопка отправки ответного сигнала -->
+            <button id="btn-connect" type="button" class="w-full py-4 px-5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-emerald-600 hover:from-red-500 hover:to-emerald-500 active:scale-[0.98] border border-red-400/50 text-white font-mono-tech font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-[0_0_28px_rgba(239,68,68,0.5)] cursor-pointer transition">
+                📡 ОТПРАВИТЬ СИГНАЛ: Я БУДУ
+            </button>
+        </div>
+
+        <!-- Кнопка перезапуска -->
+        <button id="btn-restart" type="button" class="px-5 py-2.5 rounded-xl bg-[#0c0406]/90 hover:bg-red-950/50 border border-red-500/45 font-mono-tech text-xs font-bold text-red-200 cursor-pointer transition">
+            ↻ ПРОЙТИ ЗАНОВО
+        </button>
+    </section>
+
+    <!-- =========================================================
+         ЭКРАН 6: ФИНАЛЬНЫЙ ТЬМА-ЭКРАН И ТИЗЕР 2 СЕЗОНА (ЭЛТ-ВЫКЛЮЧЕНИЕ)
+         ========================================================= -->
+    <section id="screen-season2" class="hidden fixed inset-0 z-[70] min-h-[100dvh] w-full bg-black flex flex-col items-center justify-center px-5 py-8 text-center overflow-hidden">
+        <!-- Слой схлопывания старого телевизора -->
+        <div id="crt-collapse-beam" class="pointer-events-none fixed inset-0 z-20 flex items-center justify-center">
+            <div id="crt-beam-core" class="w-full h-full bg-white/95"></div>
+        </div>
+
+        <!-- Слой резкого мерцания в момент слова «мать» -->
+        <div id="s2-flicker-layer" class="pointer-events-none fixed inset-0 z-10 bg-black"></div>
+
+        <!-- Фраза Кая в полной темноте -->
+        <div id="kai-realization-box" class="relative z-30 my-auto flex flex-col items-center justify-center gap-6">
+            <p class="text-3xl sm:text-5xl font-black tracking-wide text-slate-100 select-none">
+                <span id="kai-word-1" class="opacity-0 transition-opacity duration-300">«Твою</span>
+                <span id="kai-word-2" class="opacity-0 text-red-500 rgb-glitch-text ml-2">мать...»</span>
+            </p>
+
+            <!-- Карточка анонса 2 сезона (появляется мгновенно при мерцании на слове «мать») -->
+            <div id="season2-reveal-card" class="hidden w-full max-w-lg p-6 rounded-2xl bg-[#070204]/95 border-2 border-red-500/85 shadow-[0_0_55px_rgba(239,68,68,0.55)] space-y-4 mt-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/25 border border-red-500/70 font-mono-tech text-[11px] font-extrabold tracking-widest text-red-300 uppercase">
+                    ПРОДОЛЖЕНИЕ СЛЕДУЕТ // ВТОРОЙ СЕЗОН
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="font-mono-tech text-xs font-bold tracking-[0.26em] text-cyan-300 uppercase">
+                        NEW ORDER // SEASON 02
+                    </p>
+                    <h2 class="text-3xl sm:text-4xl font-black text-white uppercase leading-tight rgb-glitch-text">
+                        НОВЫЙ ПОРЯДОК:<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-pink-500 to-cyan-400">
+                            ОХОТА НА ПРИЗРАКА
+                        </span>
+                    </h2>
+                </div>
+
+                <div class="p-3 rounded-xl bg-black/90 border border-emerald-500/45 font-mono-tech text-xs font-bold text-emerald-300 tracking-wider">
+                    СТАТУС: КАЙ ВЫШЕЛ ИЗ СЕТИ // СКОРО
+                </div>
+
+                <button id="btn-restart-s2" type="button" class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-cyan-600 hover:from-red-500 hover:to-cyan-500 active:scale-[0.98] border border-red-400/50 font-mono-tech text-xs sm:text-sm font-extrabold text-white tracking-wider uppercase cursor-pointer transition shadow-[0_0_24px_rgba(239,68,68,0.45)]">
+                    ↻ ПЕРЕЗАПУСТИТЬ ФИНАЛ
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         JAVASCRIPT: СТРОГО ВНУТРИ <script></script> ПЕРЕД </body>
+         ========================================================= -->
+    <script>
+        /* =========================================================
+           1. ЗВУКОВОЙ СИНТЕЗАТОР (WEB AUDIO API В TRY / CATCH)
+           ========================================================= */
+        class SynthAudio {
+            constructor() {
+                this.ctx = null;
+                this.creditsTimer = null;
+                this.logTimer = null;
+            }
+
+            init() {
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return false;
+                    if (!this.ctx) {
+                        this.ctx = new AudioCtx();
+                    }
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume().catch(() => {});
+                    }
+                    return true;
+                } catch (err) {
+                    return false;
+                }
+            }
+
+            beep(freq = 660, duration = 0.08, type = 'sine', volume = 0.07) {
+                try {
+                    if (!this.init() || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(volume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + duration);
+                } catch (err) {}
+            }
+
+            startCreditsAmbient() {
+                this.stopCreditsAmbient();
+                try {
+                    if (!this.init()) return;
+                    const notes = [110, 130.81, 146.83, 164.81, 146.83, 130.81];
+                    let step = 0;
+                    const playPad = () => {
+                        this.beep(notes[step % notes.length], 0.85, 'triangle', 0.045);
+                        step++;
+                    };
+                    playPad();
+                    this.creditsTimer = setInterval(playPad, 900);
+                } catch (err) {}
+            }
+
+            stopCreditsAmbient() {
+                if (this.creditsTimer) {
+                    clearInterval(this.creditsTimer);
+                    this.creditsTimer = null;
+                }
+            }
+
+            playGlitchNoise() {
+                try {
+                    if (!this.init() || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+
+                    // 1. Жёсткий цифровой треск (белый шум)
+                    const duration = 0.8;
+                    const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        const burst = Math.sin(i * 0.04) > 0 ? 1 : 0.25;
+                        data[i] = (Math.random() * 2 - 1) * 0.45 * burst;
+                    }
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const noiseGain = this.ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.18, now);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                    noise.connect(noiseGain);
+                    noiseGain.connect(this.ctx.destination);
+                    noise.start(now);
+
+                    // 2. Низкий электронный скрежет и тревожный импульс
+                    const osc = this.ctx.createOscillator();
+                    const oscGain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(145, now);
+                    osc.frequency.exponentialRampToValueAtTime(38, now + 0.6);
+                    oscGain.gain.setValueAtTime(0.15, now);
+                    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                    osc.connect(oscGain);
+                    oscGain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                } catch (err) {}
+            }
+
+            playVoicePulse(speaker) {
+                try {
+                    if (!this.init() || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    if (speaker === 'VEYL') {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(210 + Math.random() * 130, now);
+                    } else {
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(95 + Math.random() * 65, now);
+                    }
+                    gain.gain.setValueAtTime(0.04, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } catch (err) {}
+            }
+
+            stopAudioLog() {
+                if (this.logTimer) {
+                    clearInterval(this.logTimer);
+                    this.logTimer = null;
+                }
+            }
+
+            playCrtPowerOff() {
+                try {
+                    if (!this.init() || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+
+                    // Высокочастотный свист кинескопа, резко падающий вниз при выключении
+                    const whine = this.ctx.createOscillator();
+                    const whineGain = this.ctx.createGain();
+                    whine.type = 'sine';
+                    whine.frequency.setValueAtTime(3400, now);
+                    whine.frequency.exponentialRampToValueAtTime(65, now + 0.42);
+                    whineGain.gain.setValueAtTime(0.09, now);
+                    whineGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                    whine.connect(whineGain);
+                    whineGain.connect(this.ctx.destination);
+                    whine.start(now);
+                    whine.stop(now + 0.45);
+
+                    // Глухой щелчок реле старого телевизора
+                    const thud = this.ctx.createOscillator();
+                    const thudGain = this.ctx.createGain();
+                    thud.type = 'triangle';
+                    thud.frequency.setValueAtTime(110, now + 0.38);
+                    thud.frequency.exponentialRampToValueAtTime(28, now + 0.62);
+                    thudGain.gain.setValueAtTime(0.18, now + 0.38);
+                    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.64);
+                    thud.connect(thudGain);
+                    thudGain.connect(this.ctx.destination);
+                    thud.start(now + 0.38);
+                    thud.stop(now + 0.64);
+                } catch (err) {}
+            }
+
+            playSeasonTwoImpact() {
+                try {
+                    if (!this.init() || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+
+                    // Мощный низкочастотный удар + разряд помех на слове «мать»
+                    const sub = this.ctx.createOscillator();
+                    const subGain = this.ctx.createGain();
+                    sub.type = 'sawtooth';
+                    sub.frequency.setValueAtTime(135, now);
+                    sub.frequency.exponentialRampToValueAtTime(32, now + 0.75);
+                    subGain.gain.setValueAtTime(0.22, now);
+                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.78);
+                    sub.connect(subGain);
+                    subGain.connect(this.ctx.destination);
+                    sub.start(now);
+                    sub.stop(now + 0.78);
+
+                    this.playGlitchNoise();
+                } catch (err) {}
+            }
+        }
+
+        const audio = new SynthAudio();
+        window.audioEngine = audio;
+
+        /* =========================================================
+           2. ДАННЫЕ СЛАЙДОВ И ДИАЛОГА ПЕРЕХВАТА (#0451)
+           ========================================================= */
+        const SLIDES = [
+            {
+                badge: 'УЛИКА #01 // PACIFIC STANDARD',
+                title: 'УЛИКА #01 // PACIFIC STANDARD',
+                text: 'Ограбление банка было спектаклем — Джек забрал диск с компроматом не для Кая, а чтобы зачистить следы.',
+                artType: 'vault',
+                isVerdict: false,
+                hotspot: {
+                    x: '30%',
+                    y: '40%',
+                    tag: 'СКАТ_SHADOW // СЕКТОР ЯЧЕЙКИ #409',
+                    note: 'Биометрия Джека внесена в реестр «Эгиды» за 48 часов до налёта. Сигнализация хранилища отключена его личным мастер-ключом.'
+                }
+            },
+            {
+                badge: 'УЛИКА #02 // СЛЕД ДЕНЕГ',
+                title: 'УЛИКА #02 // СЛЕД ДЕНЕГ',
+                text: 'За день до начала операции на анонимный счёт Джека поступило $4.5 млн от структур, связанных с ЧВК «Эгида».',
+                artType: 'money',
+                isVerdict: false,
+                hotspot: {
+                    x: '64%',
+                    y: '57%',
+                    tag: 'СКАТ_SHADOW // ТРАССИРОВКА ПЕРЕВОДА',
+                    note: 'Транш $4.5M авторизован напрямую из резервного фонда совета директоров «Эгиды» с пометкой: «Ликвидация группы Вейла».'
+                }
+            },
+            {
+                badge: 'УЛИКА #03 // ЧУЖАЯ ИГРА',
+                title: 'УЛИКА #03 // ЧУЖАЯ ИГРА',
+                text: 'Джек специально нанял Кая как лучшего хакера города, чтобы повесить на него взлом систем и скрыть истинного заказчика.',
+                artType: 'crosshair',
+                isVerdict: false,
+                hotspot: {
+                    x: '50%',
+                    y: '46%',
+                    tag: 'СКАТ_SHADOW // СПУТНИКОВОЕ НАВЕДЕНИЕ',
+                    note: 'Маячок слежения вшит в прошивку твоего терминала GLITCH_OS в первую ночь знакомства. Джек видит каждый твой шаг.'
+                }
+            },
+            {
+                badge: 'ВЕРДИКТ // АГЕНТ ПОД ПРИКРЫТИЕМ',
+                title: 'ВЕРДИКТ // АГЕНТ ПОД ПРИКРЫТИЕМ',
+                text: 'Джек «Ржавый» — двойной агент. Вся операция «Новый Порядок» была спланированной зачисткой.',
+                artType: 'traitor',
+                isVerdict: true,
+                hotspot: null
+            }
+        ];
+
+        const DIALOGUE_LINES = [
+            {
+                at: 0,
+                time: '00:01',
+                speaker: 'VEYL',
+                name: 'ВЕЙЛ',
+                badgeClass: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10',
+                text: '«Джек, твои люди перекрыли крышу Maze Bank. Ты обещал, что мы в одной лодке!»'
+            },
+            {
+                at: 3200,
+                time: '00:04',
+                speaker: 'VANCE',
+                name: 'ДЖЕК',
+                badgeClass: 'text-red-300 border-red-500/50 bg-red-500/15',
+                text: '«Ты правда думал, что старый волк работает за спасибо, Виктор? Совет директоров «Эгиды» заплатил вдвое больше за твою голову.»'
+            },
+            {
+                at: 7200,
+                time: '00:08',
+                speaker: 'VEYL',
+                name: 'ВЕЙЛ',
+                badgeClass: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10',
+                text: '«А как же пацан? Хакер?! Он же вскрыл для тебя все сейфы Pacific Standard!»'
+            },
+            {
+                at: 11200,
+                time: '00:12',
+                speaker: 'VANCE',
+                name: 'ДЖЕК',
+                badgeClass: 'text-red-300 border-red-500/50 bg-red-500/15',
+                text: '«Кай — всего лишь одноразовая отмычка. Все цифровые следы ведут на его терминал. Для полиции и «Эгиды» предатель — он.»'
+            },
+            {
+                at: 15200,
+                time: '00:16',
+                speaker: 'VEYL',
+                name: 'ВЕЙЛ',
+                badgeClass: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10',
+                text: '«Ты... ты всех нас подставил с самого первого дня...»'
+            },
+            {
+                at: 17800,
+                time: '00:19',
+                speaker: 'VANCE',
+                name: 'ДЖЕК',
+                badgeClass: 'text-red-300 border-red-500/50 bg-red-500/15',
+                text: '«Ничего личного. Просто Новый Порядок. Конец связи.»'
+            }
+        ];
+
+        /* =========================================================
+           3. РИСОВАНИЕ ФОНА (ЗАКАТ ЛОС-САНТОСА / МАТРИЧНЫЙ РЕЖИМ ВЗЛОМА)
+           ========================================================= */
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgMode = 'sunset';
+        let bgMatrixDrops = [];
+        const BG_MATRIX_CHARS = '0123456789ABCDEF#$@%&*<>';
+
+        function resizeBgCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            const cols = Math.max(12, Math.floor(bgCanvas.width / 16));
+            bgMatrixDrops = Array(cols).fill(0).map(() => Math.floor(Math.random() * 40));
+        }
+        window.addEventListener('resize', resizeBgCanvas);
+        resizeBgCanvas();
+
+        function drawPalmTree(ctx, x, baseY, scale) {
+            ctx.save();
+            ctx.translate(x, baseY);
+            ctx.scale(scale, scale);
+            ctx.fillStyle = '#05070e';
+            ctx.beginPath();
+            ctx.moveTo(-6, 0);
+            ctx.quadraticCurveTo(-14, -90, 8, -180);
+            ctx.lineTo(15, -180);
+            ctx.quadraticCurveTo(-4, -90, 6, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            const angles = [-2.6, -2.0, -1.2, -0.4, 0.3, 0.9];
+            angles.forEach((ang) => {
+                ctx.save();
+                ctx.translate(11, -178);
+                ctx.rotate(ang);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.quadraticCurveTo(38, -18, 76, 12);
+                ctx.quadraticCurveTo(38, -4, 0, 5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+            ctx.restore();
+        }
+
+        function animateBackground() {
+            const w = bgCanvas.width;
+            const h = bgCanvas.height;
+            const t = Date.now() * 0.001;
+
+            if (bgMode === 'sunset') {
+                const grad = bgCtx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, '#09071a');
+                grad.addColorStop(0.45, '#3b124a');
+                grad.addColorStop(0.72, '#c0396b');
+                grad.addColorStop(1, '#070b14');
+                bgCtx.fillStyle = grad;
+                bgCtx.fillRect(0, 0, w, h);
+
+                // Неоновое солнце на горизонте
+                const sunY = h * 0.64;
+                const sunR = Math.min(w, h) * 0.17;
+                const sunGrad = bgCtx.createLinearGradient(0, sunY - sunR, 0, sunY + sunR);
+                sunGrad.addColorStop(0, '#fde047');
+                sunGrad.addColorStop(0.55, '#fb7185');
+                sunGrad.addColorStop(1, '#c026d3');
+                bgCtx.fillStyle = sunGrad;
+                bgCtx.beginPath();
+                bgCtx.arc(w * 0.5, sunY, sunR, 0, Math.PI * 2);
+                bgCtx.fill();
+
+                // Океан и блики
+                bgCtx.fillStyle = '#060a14';
+                bgCtx.fillRect(0, sunY, w, h - sunY);
+                for (let i = 0; i < 14; i++) {
+                    const ry = sunY + 12 + i * ((h - sunY) / 14);
+                    const rw = sunR * (1.2 - i * 0.06) + Math.sin(t * 2 + i) * 14;
+                    bgCtx.fillStyle = 'rgba(244, 114, 182, 0.25)';
+                    bgCtx.fillRect(w * 0.5 - rw * 0.5, ry, rw, 2);
+                }
+
+                // Силуэты пальм по краям
+                drawPalmTree(bgCtx, w * 0.12, h * 0.96, 1.05);
+                drawPalmTree(bgCtx, w * 0.88, h * 0.98, 1.2);
+            } else {
+                // Постоянный хакерский фон (матричный поток + красная сетка взлома) на всех слайдах досье и финале
+                bgCtx.fillStyle = 'rgba(5, 2, 4, 0.24)';
+                bgCtx.fillRect(0, 0, w, h);
+
+                const fontSize = 15;
+                bgCtx.font = `bold ${fontSize}px JetBrains Mono, monospace`;
+                for (let i = 0; i < bgMatrixDrops.length; i++) {
+                    const ch = BG_MATRIX_CHARS[Math.floor(Math.random() * BG_MATRIX_CHARS.length)];
+                    bgCtx.fillStyle = Math.random() > 0.78 ? 'rgba(239, 68, 68, 0.42)' : 'rgba(16, 185, 129, 0.32)';
+                    bgCtx.fillText(ch, i * 16, bgMatrixDrops[i] * fontSize);
+                    if (bgMatrixDrops[i] * fontSize > h && Math.random() > 0.95) {
+                        bgMatrixDrops[i] = 0;
+                    }
+                    bgMatrixDrops[i] += 0.45;
+                }
+            }
+            requestAnimationFrame(animateBackground);
+        }
+        animateBackground();
+
+        // Мини-радар на финальном экране в красно-изумрудной хакерской палитре
+        let radarAngle = 0;
+        function animateRadar() {
+            const radar = document.getElementById('radarCanvas');
+            if (radar && !document.getElementById('screen-finale').classList.contains('hidden')) {
+                const ctx = radar.getContext('2d');
+                const w = radar.width;
+                const h = radar.height;
+                const cx = w / 2;
+                const cy = h / 2;
+                const r = w * 0.44;
+
+                ctx.fillStyle = '#040509';
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.42)';
+                ctx.lineWidth = 1;
+                [0.35, 0.68, 1].forEach((k) => {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r * k, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+
+                ctx.beginPath();
+                ctx.moveTo(cx - r, cy);
+                ctx.lineTo(cx + r, cy);
+                ctx.moveTo(cx, cy - r);
+                ctx.lineTo(cx, cy + r);
+                ctx.stroke();
+
+                // Вращающийся луч
+                radarAngle += 0.04;
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(radarAngle);
+                const sweep = ctx.createLinearGradient(0, 0, r, 0);
+                sweep.addColorStop(0, 'rgba(239, 68, 68, 0.5)');
+                sweep.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+                ctx.fillStyle = sweep;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, r, -0.35, 0.35);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+
+                // Пульсирующая точка Пирса 400
+                const pulse = 3 + Math.sin(radarAngle * 3) * 1.5;
+                ctx.fillStyle = '#34d399';
+                ctx.beginPath();
+                ctx.arc(cx + 18, cy - 14, pulse, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            requestAnimationFrame(animateRadar);
+        }
+        animateRadar();
+
+        /* =========================================================
+           4. СЮЖЕТНЫЕ 2D-ИЛЛЮСТРАЦИИ СЛАЙДОВ С HUD-ОВЕРЛЕЕМ ВЗЛОМА
+           ========================================================= */
+        function applyHackerHudOverlay(ctx, w, h, tagText) {
+            // Тонкие сканлайны перехвата поверх иллюстрации
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.06)';
+            for (let y = 0; y < h; y += 6) {
+                ctx.fillRect(0, y, w, 1.5);
+            }
+
+            // Кибер-уголки видоискателя
+            ctx.strokeStyle = '#ff2a4b';
+            ctx.lineWidth = 2.5;
+            const len = 18;
+            // Левый верхний
+            ctx.beginPath();
+            ctx.moveTo(10, 10 + len); ctx.lineTo(10, 10); ctx.lineTo(10 + len, 10);
+            ctx.stroke();
+            // Правый верхний
+            ctx.beginPath();
+            ctx.moveTo(w - 10 - len, 10); ctx.lineTo(w - 10, 10); ctx.lineTo(w - 10, 10 + len);
+            ctx.stroke();
+            // Левый нижний
+            ctx.beginPath();
+            ctx.moveTo(10, h - 10 - len); ctx.lineTo(10, h - 10); ctx.lineTo(10 + len, h - 10);
+            ctx.stroke();
+            // Правый нижний
+            ctx.beginPath();
+            ctx.moveTo(w - 10 - len, h - 10); ctx.lineTo(w - 10, h - 10); ctx.lineTo(w - 10, h - 10 - len);
+            ctx.stroke();
+
+            // Плашка телеметрии в углу
+            ctx.fillStyle = 'rgba(10, 3, 5, 0.85)';
+            ctx.fillRect(16, h - 32, 210, 18);
+            ctx.fillStyle = '#22d3ee';
+            ctx.font = 'bold 10px JetBrains Mono, monospace';
+            ctx.fillText(`REC // ${tagText}`, 22, h - 19);
+        }
+
+        function renderSlideIllustration(artType) {
+            const canvas = document.getElementById('artCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (artType === 'vault') {
+                // СЛАЙД 1: Хранилище Pacific Standard, ячейка #409, жёсткий диск и силуэт Джека
+                const bg = ctx.createLinearGradient(0, 0, w, h);
+                bg.addColorStop(0, '#070d1f');
+                bg.addColorStop(1, '#141e38');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+
+                for (let row = 0; row < 4; row++) {
+                    for (let col = 0; col < 4; col++) {
+                        const bx = 28 + col * 62;
+                        const by = 44 + row * 68;
+                        const isTarget = row === 1 && col === 2;
+                        ctx.fillStyle = isTarget ? '#0284c7' : '#0f172a';
+                        ctx.strokeStyle = isTarget ? '#38bdf8' : '#334155';
+                        ctx.lineWidth = isTarget ? 2.5 : 1.5;
+                        ctx.fillRect(bx, by, 54, 58);
+                        ctx.strokeRect(bx, by, 54, 58);
+                        if (isTarget) {
+                            ctx.fillStyle = '#e0f2fe';
+                            ctx.font = 'bold 11px JetBrains Mono, monospace';
+                            ctx.fillText('#409', bx + 11, by + 33);
+                        }
+                    }
+                }
+
+                const diskGrad = ctx.createRadialGradient(355, 175, 10, 355, 175, 110);
+                diskGrad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+                diskGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                ctx.fillStyle = diskGrad;
+                ctx.beginPath();
+                ctx.arc(355, 175, 110, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#090d16';
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 2.5;
+                ctx.fillRect(310, 120, 90, 115);
+                ctx.strokeRect(310, 120, 90, 115);
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = 'bold 12px JetBrains Mono, monospace';
+                ctx.fillText('AEGIS_HDD', 322, 152);
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(324, 172, 62, 6);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '10px JetBrains Mono, monospace';
+                ctx.fillText('ARCHIVE_09', 324, 204);
+
+                ctx.fillStyle = '#03050a';
+                ctx.beginPath();
+                ctx.arc(525, 110, 32, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(455, 360);
+                ctx.lineTo(475, 155);
+                ctx.lineTo(575, 155);
+                ctx.lineTo(598, 360);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(425, 182, 55, 12);
+                ctx.fillRect(465, 188, 16, 26);
+
+                applyHackerHudOverlay(ctx, w, h, 'CAM_VAULT_04');
+
+            } else if (artType === 'money') {
+                // СЛАЙД 2: Ночной небоскрёб Maze Bank со знаком «Эгиды» и перевод $4,500,000
+                const bg = ctx.createLinearGradient(0, 0, 0, h);
+                bg.addColorStop(0, '#070913');
+                bg.addColorStop(1, '#17112b');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.fillStyle = '#0c1324';
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 2;
+                ctx.fillRect(65, 36, 135, 324);
+                ctx.strokeRect(65, 36, 135, 324);
+
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(132, 62);
+                ctx.lineTo(156, 84);
+                ctx.lineTo(132, 106);
+                ctx.lineTo(108, 84);
+                ctx.closePath();
+                ctx.fill();
+                ctx.font = 'bold 11px JetBrains Mono, monospace';
+                ctx.fillText('AEGIS // MAZE', 88, 126);
+
+                for (let y = 145; y < 340; y += 22) {
+                    ctx.fillStyle = 'rgba(251, 191, 36, 0.25)';
+                    ctx.fillRect(82, y, 100, 6);
+                }
+
+                ctx.fillStyle = '#06131a';
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 2.5;
+                ctx.fillRect(245, 70, 355, 220);
+                ctx.strokeRect(245, 70, 355, 220);
+
+                ctx.fillStyle = '#34d399';
+                ctx.font = 'bold 13px JetBrains Mono, monospace';
+                ctx.fillText('OFFSHORE WIRE // COMPLETED', 268, 105);
+
+                ctx.fillStyle = '#fde047';
+                ctx.font = '900 34px Inter, sans-serif';
+                ctx.fillText('$4,500,000', 268, 165);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px JetBrains Mono, monospace';
+                ctx.fillText('FROM: AEGIS_HOLDINGS_KY', 268, 205);
+                ctx.fillText('TO:   VANCE_VAULT_X92', 268, 230);
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillText('STATUS: UNTRACEABLE', 268, 262);
+
+                applyHackerHudOverlay(ctx, w, h, 'WIRE_TRACE_92');
+
+            } else if (artType === 'crosshair') {
+                // СЛАЙД 3: Неоновый переулок, Кай в худи со смартфоном под красным спутниковым прицелом
+                const bg = ctx.createLinearGradient(0, 0, w, h);
+                bg.addColorStop(0, '#160824');
+                bg.addColorStop(1, '#060c18');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.strokeStyle = '#ec4899';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(36, 48, 130, 38);
+                ctx.fillStyle = '#f472b6';
+                ctx.font = 'bold 14px JetBrains Mono, monospace';
+                ctx.fillText('DOWNTOWN', 54, 72);
+
+                ctx.strokeStyle = '#22d3ee';
+                ctx.strokeRect(475, 65, 125, 36);
+                ctx.fillStyle = '#67e8f9';
+                ctx.fillText('MOTEL 24H', 494, 88);
+
+                ctx.fillStyle = '#090d16';
+                ctx.beginPath();
+                ctx.arc(320, 145, 42, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(235, 360);
+                ctx.lineTo(260, 185);
+                ctx.lineTo(380, 185);
+                ctx.lineTo(405, 360);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(302, 230, 36, 56);
+
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(320, 165, 88, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(320, 165, 52, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(205, 165);
+                ctx.lineTo(435, 165);
+                ctx.moveTo(320, 50);
+                ctx.lineTo(320, 280);
+                ctx.stroke();
+
+                ctx.fillStyle = '#ef4444';
+                ctx.font = 'bold 12px JetBrains Mono, monospace';
+                ctx.fillText('TARGET LOCKED: KAI MERCER', 218, 34);
+
+                applyHackerHudOverlay(ctx, w, h, 'SAT_OPTIC_01');
+
+            } else {
+                // СЛАЙД 4: Нуар-портрет Джека Вэнса на фоне порта и вертолёта
+                const bg = ctx.createLinearGradient(0, 0, 0, h);
+                bg.addColorStop(0, '#1c070c');
+                bg.addColorStop(1, '#060811');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(60, 360);
+                ctx.lineTo(60, 95);
+                ctx.lineTo(195, 65);
+                ctx.stroke();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.ellipse(500, 82, 46, 18, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(435, 60, 130, 4);
+
+                const beam = ctx.createLinearGradient(500, 95, 360, 360);
+                beam.addColorStop(0, 'rgba(248, 250, 252, 0.25)');
+                beam.addColorStop(1, 'rgba(248, 250, 252, 0)');
+                ctx.fillStyle = beam;
+                ctx.beginPath();
+                ctx.moveTo(490, 95);
+                ctx.lineTo(250, 360);
+                ctx.lineTo(470, 360);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#05070d';
+                ctx.beginPath();
+                ctx.arc(310, 135, 46, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(195, 360);
+                ctx.lineTo(230, 185);
+                ctx.lineTo(390, 185);
+                ctx.lineTo(425, 360);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(275, 188);
+                ctx.lineTo(310, 255);
+                ctx.lineTo(345, 188);
+                ctx.stroke();
+
+                applyHackerHudOverlay(ctx, w, h, 'SUBJECT_VANCE');
+            }
+        }
+
+        /* =========================================================
+           5. УПРАВЛЕНИЕ ЭКРАНАМИ, ТИТРАМИ И ПЕРЕХВАТОМ #0451
+           ========================================================= */
+        const screens = {
+            start: document.getElementById('screen-start'),
+            credits: document.getElementById('screen-credits'),
+            glitch: document.getElementById('screen-glitch'),
+            dossier: document.getElementById('screen-dossier'),
+            finale: document.getElementById('screen-finale'),
+            season2: document.getElementById('screen-season2')
+        };
+
+        let currentSlide = 0;
+        let creditsTimeout = null;
+        let logCompleted = false;
+        let firewallUnlocked = false;
+        let fwInterval = null;
+        let fwNodesCleared = 0;
+        let traceTriggered = false;
+        let strikeInterval = null;
+        let crtTriggered = false;
+        let s2Timeouts = [];
+        let hackAnimId = null;
+        let hackLogTimer = null;
+
+        const EXPLOIT_LINES = [
+            'BYPASSING GLITCH_OS KERNEL GUARD...',
+            'INJECTING PAYLOAD -> 0x7FFE004A [OK]',
+            'INTERCEPTING OUTRO STREAM // PID 4092',
+            'SPOOFING SIGNATURE: VANCE_AUTH_TOKEN',
+            'WARNING: UNAUTHORIZED ROOT ACCESS!',
+            'REMOTE NODE CONNECTED: СКАТ_SHADOW',
+            'DUMPING CLASSIFIED DOSSIER [4 FILES]...',
+            'OVERRIDE COMPLETE. OPENING ARCHIVE.'
+        ];
+
+        function stopAllTimers() {
+            if (fwInterval) {
+                clearInterval(fwInterval);
+                fwInterval = null;
+            }
+            if (strikeInterval) {
+                clearInterval(strikeInterval);
+                strikeInterval = null;
+            }
+            s2Timeouts.forEach((tId) => clearTimeout(tId));
+            s2Timeouts = [];
+        }
+
+        function startFirewallMiniGame() {
+            if (fwInterval) {
+                clearInterval(fwInterval);
+                fwInterval = null;
+            }
+            const fwGrid = document.getElementById('fw-grid');
+            const fwTimerEl = document.getElementById('fw-timer');
+            const fwProgressEl = document.getElementById('fw-progress');
+            const fwStatusEl = document.getElementById('fw-status');
+            if (!fwGrid || !fwTimerEl || !fwProgressEl) return;
+
+            fwNodesCleared = 0;
+            fwProgressEl.textContent = '0 / 3';
+            fwStatusEl.innerHTML = 'Нейтрализуйте 3 красных узла защиты до сброса ключа (<span id="fw-progress" class="text-cyan-300 font-bold">0 / 3</span>):';
+
+            // Выбираем 3 случайных красных узла из 6 ячеек
+            const indices = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
+            const redSet = new Set(indices.slice(0, 3));
+            fwGrid.innerHTML = '';
+
+            for (let i = 0; i < 6; i++) {
+                const isRed = redSet.has(i);
+                const cell = document.createElement('button');
+                cell.type = 'button';
+                const hexCode = '0x' + (0xA0 + i * 17).toString(16).toUpperCase();
+                cell.dataset.red = isRed ? '1' : '0';
+                cell.dataset.cleared = '0';
+
+                if (isRed) {
+                    cell.className = 'py-2.5 px-2 rounded-lg bg-red-600/35 border-2 border-red-500 text-red-200 font-mono-tech text-xs font-extrabold animate-pulse cursor-pointer shadow-[0_0_12px_rgba(239,68,68,0.55)]';
+                    cell.textContent = `⚠ ${hexCode}`;
+                } else {
+                    cell.className = 'py-2.5 px-2 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-500 font-mono-tech text-xs font-bold cursor-pointer';
+                    cell.textContent = `OK ${hexCode}`;
+                }
+
+                cell.onclick = () => {
+                    if (firewallUnlocked) return;
+                    if (cell.dataset.red === '1' && cell.dataset.cleared === '0') {
+                        cell.dataset.cleared = '1';
+                        fwNodesCleared++;
+                        setTimeout(() => audio.beep(780 + fwNodesCleared * 140, 0.08, 'sine', 0.08), 0);
+                        cell.className = 'py-2.5 px-2 rounded-lg bg-emerald-600/30 border-2 border-emerald-400 text-emerald-300 font-mono-tech text-xs font-extrabold';
+                        cell.textContent = '✓ CRACKED';
+                        const prog = document.getElementById('fw-progress');
+                        if (prog) prog.textContent = `${fwNodesCleared} / 3`;
+
+                        if (fwNodesCleared >= 3) {
+                            clearInterval(fwInterval);
+                            fwInterval = null;
+                            firewallUnlocked = true;
+                            setTimeout(() => audio.beep(1180, 0.16, 'triangle', 0.09), 0);
+                            setTimeout(() => {
+                                renderSlide(currentSlide);
+                            }, 320);
+                        }
+                    } else if (cell.dataset.red === '0') {
+                        setTimeout(() => audio.beep(210, 0.1, 'sawtooth', 0.06), 0);
+                    }
+                };
+                fwGrid.appendChild(cell);
+            }
+
+            const deadline = Date.now() + 8000;
+            fwInterval = setInterval(() => {
+                if (firewallUnlocked) {
+                    clearInterval(fwInterval);
+                    fwInterval = null;
+                    return;
+                }
+                const rem = Math.max(0, (deadline - Date.now()) / 1000);
+                fwTimerEl.textContent = `0${rem.toFixed(1)}с`;
+                if (rem <= 0) {
+                    clearInterval(fwInterval);
+                    fwInterval = null;
+                    audio.beep(180, 0.18, 'sawtooth', 0.08);
+                    fwTimerEl.textContent = 'СБРОС!';
+                    setTimeout(() => {
+                        if (!firewallUnlocked && currentSlide === 3) {
+                            startFirewallMiniGame();
+                        }
+                    }, 450);
+                }
+            }, 100);
+        }
+
+        function renderSlide(idx) {
+            const slide = SLIDES[idx];
+            document.getElementById('slide-counter').textContent = `${idx + 1} / ${SLIDES.length}`;
+            document.getElementById('slide-badge').textContent = slide.badge;
+            document.getElementById('slide-title').textContent = slide.title;
+            document.getElementById('slide-text').textContent = slide.text;
+
+            renderSlideIllustration(slide.artType);
+
+            // Управление интерактивной точкой скрытой улики (Слайды 1–3)
+            const hotspotBtn = document.getElementById('btn-hotspot');
+            const hotspotPopup = document.getElementById('hotspot-popup');
+            hotspotPopup.classList.add('hidden');
+            if (slide.hotspot) {
+                hotspotBtn.style.left = slide.hotspot.x;
+                hotspotBtn.style.top = slide.hotspot.y;
+                hotspotBtn.classList.remove('hidden');
+            } else {
+                hotspotBtn.classList.add('hidden');
+            }
+
+            const stamp = document.getElementById('traitor-stamp');
+            const fwBox = document.getElementById('firewall-box');
+            const logBox = document.getElementById('audiolog-box');
+            const nextBtn = document.getElementById('btn-next');
+            const prevBtn = document.getElementById('btn-prev');
+
+            prevBtn.disabled = idx === 0;
+
+            if (slide.isVerdict) {
+                stamp.classList.remove('hidden');
+                if (!firewallUnlocked) {
+                    fwBox.classList.remove('hidden');
+                    logBox.classList.add('hidden');
+                    nextBtn.textContent = '🔒 ВЗЛОМАЙТЕ ЗАЩИТУ ДЖЕКА (#0451)';
+                    nextBtn.classList.add('opacity-65');
+                    startFirewallMiniGame();
+                } else {
+                    fwBox.classList.add('hidden');
+                    logBox.classList.remove('hidden');
+                    drawFlatWave();
+                    if (!logCompleted) {
+                        nextBtn.textContent = '🔒 СНАЧАЛА ПРОСЛУШАЙТЕ ПЕРЕХВАТ (#0451)';
+                        nextBtn.classList.add('opacity-65');
+                    } else {
+                        nextBtn.textContent = 'ДАЛЕЕ: ВХОДЯЩЕЕ СООБЩЕНИЕ →';
+                        nextBtn.classList.remove('opacity-65');
+                    }
+                }
+            } else {
+                stamp.classList.add('hidden');
+                fwBox.classList.add('hidden');
+                logBox.classList.add('hidden');
+                if (fwInterval) {
+                    clearInterval(fwInterval);
+                    fwInterval = null;
+                }
+                audio.stopAudioLog();
+                nextBtn.textContent = 'ДАЛЕЕ ▶';
+                nextBtn.classList.remove('opacity-65');
+            }
+        }
+
+        function playWiretapLog() {
+            audio.stopAudioLog();
+            traceTriggered = false;
+            const subBox = document.getElementById('log-subtitles');
+            const btnLabel = document.getElementById('log-btn-label');
+            const timerLabel = document.getElementById('log-timer');
+            const nextBtn = document.getElementById('btn-next');
+            const traceBanner = document.getElementById('trace-alert-banner');
+            const dossierSection = document.getElementById('screen-dossier');
+            const wave = document.getElementById('waveCanvas');
+            const ctx = wave.getContext('2d');
+
+            traceBanner.classList.add('hidden');
+            btnLabel.textContent = 'ИДЁТ РАСШИФРОВКА...';
+            let lastRenderedIdx = -1;
+            const startedAt = Date.now();
+
+            audio.logTimer = setInterval(() => {
+                const elapsed = Date.now() - startedAt;
+                const sec = Math.min(19, Math.floor(elapsed / 1000));
+                timerLabel.textContent = `00:${sec < 10 ? '0' + sec : sec} / 00:19`;
+
+                let activeIdx = 0;
+                for (let i = DIALOGUE_LINES.length - 1; i >= 0; i--) {
+                    if (elapsed >= DIALOGUE_LINES[i].at) {
+                        activeIdx = i;
+                        break;
+                    }
+                }
+
+                const currentLine = DIALOGUE_LINES[activeIdx];
+                if (activeIdx !== lastRenderedIdx) {
+                    lastRenderedIdx = activeIdx;
+                    subBox.innerHTML = `
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2 py-0.5 rounded border text-[10px] font-extrabold tracking-wider ${currentLine.badgeClass}">
+                                [${currentLine.name}]
+                            </span>
+                            <span class="text-[10px] text-slate-400">${currentLine.time}</span>
+                        </div>
+                        <p class="text-slate-100 font-semibold">${currentLine.text}</p>
+                    `;
+
+                    // На отметке 00:12 (реплика Вэнса о подставе Кая) — вибрация, глитч и тревога
+                    if (activeIdx === 3 && !traceTriggered) {
+                        traceTriggered = true;
+                        traceBanner.classList.remove('hidden');
+                        audio.playGlitchNoise();
+                        try {
+                            if (navigator.vibrate) navigator.vibrate([120, 60, 160]);
+                        } catch (e) {}
+                        if (dossierSection) {
+                            dossierSection.classList.add('animate-glitch');
+                            setTimeout(() => dossierSection.classList.remove('animate-glitch'), 700);
+                        }
+                    }
+                }
+
+                // Пульс голоса и отрисовка живой осциллограммы
+                audio.playVoicePulse(currentLine.speaker);
+                ctx.fillStyle = '#030508';
+                ctx.fillRect(0, 0, wave.width, wave.height);
+                ctx.strokeStyle = currentLine.speaker === 'VEYL' ? '#22d3ee' : '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                const mid = wave.height / 2;
+                for (let x = 0; x < wave.width; x += 6) {
+                    const amp = (Math.sin(x * 0.08 + elapsed * 0.025) * 0.5 + (Math.random() - 0.5)) * 16;
+                    if (x === 0) ctx.moveTo(x, mid + amp);
+                    else ctx.lineTo(x, mid + amp);
+                }
+                ctx.stroke();
+
+                if (elapsed >= 19500) {
+                    audio.stopAudioLog();
+                    logCompleted = true;
+                    btnLabel.textContent = '↻ ПОВТОРИТЬ ПЕРЕХВАТ (#0451)';
+                    timerLabel.textContent = '00:19 / 00:19';
+                    drawFlatWave();
+                    nextBtn.textContent = 'ДАЛЕЕ: ВХОДЯЩЕЕ СООБЩЕНИЕ →';
+                    nextBtn.classList.remove('opacity-65');
+                }
+            }, 140);
+        }
+
+        function triggerCrtOffAndSeasonTwo() {
+            if (crtTriggered) return;
+            crtTriggered = true;
+
+            if (strikeInterval) {
+                clearInterval(strikeInterval);
+                strikeInterval = null;
+            }
+
+            // 1. Звук выключения ЭЛТ-телевизора и показ чёрного экрана с лучом
+            audio.playCrtPowerOff();
+            try {
+                if (navigator.vibrate) navigator.vibrate(90);
+            } catch (e) {}
+
+            const beamCore = document.getElementById('crt-beam-core');
+            const beamWrap = document.getElementById('crt-collapse-beam');
+            const flickerLayer = document.getElementById('s2-flicker-layer');
+            const word1 = document.getElementById('kai-word-1');
+            const word2 = document.getElementById('kai-word-2');
+            const s2Card = document.getElementById('season2-reveal-card');
+
+            // Сброс элементов сцены перед запуском
+            beamWrap.classList.remove('hidden');
+            beamCore.classList.remove('animate-crt-collapse');
+            flickerLayer.classList.remove('animate-s2-flicker');
+            word1.classList.add('opacity-0');
+            word2.classList.add('opacity-0');
+            s2Card.classList.add('hidden');
+
+            showScreen('season2');
+            void beamCore.offsetWidth;
+            beamCore.classList.add('animate-crt-collapse');
+
+            // 2. После схлопывания луча в полную темноту появляется «Твою»
+            s2Timeouts.push(setTimeout(() => {
+                beamWrap.classList.add('hidden');
+                audio.beep(72, 0.35, 'sine', 0.09);
+                word1.classList.remove('opacity-0');
+            }, 950));
+
+            // 3. Через 0.9 сек на слове «мать...» — резкое мерцание экрана и анонс 2 сезона
+            s2Timeouts.push(setTimeout(() => {
+                word2.classList.remove('opacity-0');
+                audio.playSeasonTwoImpact();
+                try {
+                    if (navigator.vibrate) navigator.vibrate([110, 50, 180]);
+                } catch (e) {}
+
+                void flickerLayer.offsetWidth;
+                flickerLayer.classList.add('animate-s2-flicker');
+                s2Card.classList.remove('hidden');
+                s2Card.classList.add('animate-glitch');
+
+                s2Timeouts.push(setTimeout(() => {
+                    s2Card.classList.remove('animate-glitch');
+                }, 650));
+            }, 1850));
+        }
+
+        function startAegisStrikeCountdown() {
+            if (strikeInterval) {
+                clearInterval(strikeInterval);
+                strikeInterval = null;
+            }
+            crtTriggered = false;
+            const countdownEl = document.getElementById('strike-countdown');
+            const headerEl = document.getElementById('strike-header');
+            const statusEl = document.getElementById('strike-status-text');
+            const totalMs = 45000;
+            const startedAt = Date.now();
+            let lastPingAt = 0;
+
+            strikeInterval = setInterval(() => {
+                const elapsed = Date.now() - startedAt;
+                const remMs = Math.max(0, totalMs - elapsed);
+                const secs = Math.floor(remMs / 1000);
+                const centis = Math.floor((remMs % 1000) / 10);
+                const sStr = secs < 10 ? '0' + secs : '' + secs;
+                const cStr = centis < 10 ? '0' + centis : '' + centis;
+
+                if (countdownEl) {
+                    countdownEl.textContent = `00:${sStr}.${cStr}`;
+                }
+
+                // Ускоряющиеся радар-пинги и пульс тревоги
+                const pingStep = remMs < 12000 ? 320 : remMs < 25000 ? 600 : 1000;
+                if (elapsed - lastPingAt >= pingStep && remMs > 0) {
+                    lastPingAt = elapsed;
+                    audio.beep(remMs < 12000 ? 1120 : 860, 0.06, 'sine', 0.065);
+                }
+
+                // Ровно на 10-й секунде отсчёта (остаётся 00:35.00) вырубается экран как старый телевизор
+                if (elapsed >= 10000 && !crtTriggered) {
+                    triggerCrtOffAndSeasonTwo();
+                    return;
+                }
+
+                if (remMs <= 0) {
+                    clearInterval(strikeInterval);
+                    strikeInterval = null;
+                    audio.playGlitchNoise();
+                    if (countdownEl) countdownEl.textContent = '00:00.00';
+                    if (headerEl) headerEl.textContent = '🚨 ПЕРИМЕТР ПИРСА 400 ОЦЕПЛЕН';
+                    if (statusEl) statusEl.textContent = 'УСПЕТЬ УЙТИ // ПЕРЕХОД В СЕЗОН 2';
+                }
+            }, 50);
+        }
+
+        function stopHackSequence() {
+            if (hackAnimId) {
+                cancelAnimationFrame(hackAnimId);
+                hackAnimId = null;
+            }
+            if (hackLogTimer) {
+                clearInterval(hackLogTimer);
+                hackLogTimer = null;
+            }
+        }
+
+        function startHackSequence() {
+            stopHackSequence();
+            const mCanvas = document.getElementById('hackMatrixCanvas');
+            const streamBox = document.getElementById('hack-terminal-stream');
+            if (!mCanvas || !streamBox) return;
+
+            mCanvas.width = window.innerWidth;
+            mCanvas.height = window.innerHeight;
+            const mCtx = mCanvas.getContext('2d');
+            const fontSize = 14;
+            const columns = Math.max(10, Math.floor(mCanvas.width / fontSize));
+            const drops = Array(columns).fill(1);
+            const chars = '0123456789ABCDEF#$@%&*<>';
+
+            const drawMatrix = () => {
+                mCtx.fillStyle = 'rgba(3, 5, 10, 0.18)';
+                mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+                mCtx.font = `bold ${fontSize}px JetBrains Mono, monospace`;
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    mCtx.fillStyle = Math.random() > 0.78 ? '#ef4444' : '#10b981';
+                    mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if (drops[i] * fontSize > mCanvas.height && Math.random() > 0.94) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+                hackAnimId = requestAnimationFrame(drawMatrix);
+            };
+            drawMatrix();
+
+            streamBox.innerHTML = '';
+            let lineIdx = 0;
+            const pushLine = () => {
+                const hexAddr = '0x' + Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
+                const msg = EXPLOIT_LINES[lineIdx % EXPLOIT_LINES.length];
+                const p = document.createElement('p');
+                p.className = lineIdx >= 5 ? 'text-red-400 font-bold' : 'text-emerald-400';
+                p.textContent = `[${hexAddr}] ${msg}`;
+                streamBox.appendChild(p);
+                streamBox.scrollTop = streamBox.scrollHeight;
+                if (lineIdx % 2 === 1) {
+                    audio.beep(220 + Math.random() * 480, 0.045, 'sawtooth', 0.05);
+                }
+                lineIdx++;
+            };
+            pushLine();
+            hackLogTimer = setInterval(pushLine, 340);
+        }
+
+        function showScreen(name) {
+            switchScreen('screen-' + name);
+        }
+
+        function triggerGlitchIntercept() {
+            if (window.__creditsTimerId) {
+                clearTimeout(window.__creditsTimerId);
+                window.__creditsTimerId = null;
+            }
+            if (creditsTimeout) {
+                clearTimeout(creditsTimeout);
+                creditsTimeout = null;
+            }
+            audio.stopCreditsAmbient();
+            audio.playGlitchNoise();
+            bgMode = 'matrix';
+            showScreen('glitch');
+            startHackSequence();
+
+            setTimeout(() => {
+                stopHackSequence();
+                currentSlide = 0;
+                renderSlide(0);
+                showScreen('dossier');
+            }, 3400);
+        }
+        window.triggerGlitchIntercept = triggerGlitchIntercept;
+
+        function drawFlatWave() {
+            const wave = document.getElementById('waveCanvas');
+            const ctx = wave.getContext('2d');
+            ctx.fillStyle = '#030508';
+            ctx.fillRect(0, 0, wave.width, wave.height);
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.55)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, wave.height / 2);
+            ctx.lineTo(wave.width, wave.height / 2);
+            ctx.stroke();
+        }
+
+        /* =========================================================
+           6. НАДЁЖНЫЕ НАТИВНЫЕ ОБРАБОТЧИКИ КЛИКОВ (iOS + DESKTOP)
+           ========================================================= */
+        function bindButton(id, callback) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.onclick = (e) => {
+                callback(e);
+            };
+        }
+
+        // 2. Пропуск титров
+        bindButton('btn-skip-credits', () => {
+            triggerGlitchIntercept();
+        });
+
+        // 3. Запуск аудио-лога #0451
+        bindButton('btn-play-log', () => {
+            if (!firewallUnlocked) return;
+            setTimeout(() => audio.beep(640, 0.07), 0);
+            playWiretapLog();
+        });
+
+        // 3b. Интерактивные скрытые точки на иллюстрациях 1–3 слайдов
+        bindButton('btn-hotspot', () => {
+            const slide = SLIDES[currentSlide];
+            if (!slide || !slide.hotspot) return;
+            audio.beep(1040, 0.06, 'sine', 0.08);
+            setTimeout(() => audio.beep(1380, 0.08, 'sine', 0.07), 65);
+            document.getElementById('hotspot-tag').textContent = `[${slide.hotspot.tag}]`;
+            document.getElementById('hotspot-note').textContent = slide.hotspot.note;
+            document.getElementById('hotspot-popup').classList.remove('hidden');
+        });
+
+        bindButton('btn-close-hotspot', () => {
+            audio.beep(480, 0.05);
+            document.getElementById('hotspot-popup').classList.add('hidden');
+        });
+
+        // 4. Кнопка «Назад» в досье
+        bindButton('btn-prev', () => {
+            if (currentSlide > 0) {
+                audio.beep(520, 0.06);
+                currentSlide--;
+                renderSlide(currentSlide);
+            }
+        });
+
+        // 5. Кнопка «Далее» в досье
+        bindButton('btn-next', () => {
+            if (currentSlide < SLIDES.length - 1) {
+                audio.beep(720, 0.07);
+                currentSlide++;
+                renderSlide(currentSlide);
+            } else {
+                if (!firewallUnlocked) {
+                    audio.beep(260, 0.12, 'sawtooth', 0.07);
+                    return;
+                }
+                if (!logCompleted) {
+                    audio.beep(340, 0.12);
+                    playWiretapLog();
+                    return;
+                }
+                audio.stopAudioLog();
+                audio.playGlitchNoise();
+                showScreen('finale');
+            }
+        });
+
+        // 6. Отправка сигнала «Я БУДУ» на финальном экране + запуск отсчёта группы зачистки
+        bindButton('btn-connect', () => {
+            audio.beep(880, 0.1, 'sine', 0.08);
+            setTimeout(() => audio.beep(1180, 0.16, 'sine', 0.08), 110);
+            document.getElementById('signal-confirm-box').classList.remove('hidden');
+            const btn = document.getElementById('btn-connect');
+            btn.textContent = '✓ СИГНАЛ ОТПРАВЛЕН // УХОДИ С ПИРСА';
+            btn.classList.add('opacity-80');
+            if (!strikeInterval) {
+                startAegisStrikeCountdown();
+            }
+        });
+
+        // 7. Пройти заново
+        function resetFullExperience() {
+            audio.beep(600, 0.08);
+            audio.stopCreditsAmbient();
+            audio.stopAudioLog();
+            stopHackSequence();
+            stopAllTimers();
+            if (window.__creditsTimerId) {
+                clearTimeout(window.__creditsTimerId);
+                window.__creditsTimerId = null;
+            }
+            if (creditsTimeout) {
+                clearTimeout(creditsTimeout);
+                creditsTimeout = null;
+            }
+            logCompleted = false;
+            firewallUnlocked = false;
+            traceTriggered = false;
+            crtTriggered = false;
+            bgMode = 'sunset';
+            document.getElementById('signal-confirm-box').classList.add('hidden');
+            document.getElementById('trace-alert-banner').classList.add('hidden');
+            document.getElementById('strike-countdown').textContent = '00:45.00';
+            document.getElementById('strike-header').textContent = '⚠ ПЕРЕХВАТ РАДИОЧАСТОТЫ ЧВК «ЭГИДА»';
+            const connectBtn = document.getElementById('btn-connect');
+            connectBtn.textContent = '📡 ОТПРАВИТЬ СИГНАЛ: Я БУДУ';
+            connectBtn.classList.remove('opacity-80');
+            showScreen('start');
+        }
+
+        bindButton('btn-restart', resetFullExperience);
+        bindButton('btn-restart-s2', resetFullExperience);
+    </script>
+</body>
+</html>
